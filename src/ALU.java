@@ -274,19 +274,13 @@ public class ALU {
 	 * @return 相加的结果，用长度为2的字符串表示，第1位表示进位，第2位表示和
 	 */
 	public String fullAdder(char x, char y, char c) {
-		int xInt = x - '0';
-		int yInt = y - '0';
-		int cInt = c - '0';
+		char sum = '0';
+		char carrier = '0';
 
-		int sum = 0;
-		int carrier = 0;
+		sum = this.xor(x, this.xor(c, y));
+		carrier = this.or(this.and(x, y), this.and(c, this.or(x, y)));
 
-		sum = xInt ^ yInt ^ cInt;
-		carrier = (xInt & yInt) | (cInt & (xInt | yInt));
-
-		String s = String.valueOf(sum);
-		String ca = String.valueOf(carrier);
-		String result = ca + s;
+		String result = carrier + "" + sum;
 		return result;
 	}
 
@@ -318,25 +312,20 @@ public class ALU {
 	 */
 	public String oneAdder(String operand) {
 		char[] bits = new char[operand.length() + 1];
+		char[] carriers = new char[operand.length() + 1];
+
 		bits[0] = '0';
-		for (int i = 1; i < operand.length() + 1; i++) {
+		carriers[operand.length()] = '1';
+
+		for (int i = 1; i <= operand.length(); i++) {
 			bits[i] = operand.charAt(i - 1);
 		}
-		char c = '1';
-		for (int i = operand.length(); i >= 0; i--) {
-			if (c == '1') {
-				bits[i] = (char) (bits[i] + 1);
-				if (bits[i] == '2') {
-					bits[i] = '0';
-					c = '1';
-				} else {
-					c = '0';
-				}
-			} else {
-				c = '0';
-				continue;
-			}
+		for (int i = operand.length(); i >= 1; i--) {
+			carriers[i - 1] = this.and(bits[i], carriers[i]);
+			bits[i] = this.xor(bits[i], carriers[i]);
+
 		}
+
 		String result = "";
 		for (int i = 0; i < bits.length; i++) {
 			result += bits[i];
@@ -527,5 +516,64 @@ public class ALU {
 	public String floatDivision(String operand1, String operand2, int eLength, int sLength) {
 		// TODO YOUR CODE HERE.
 		return null;
+	}
+
+	/**
+	 * 与门
+	 * 
+	 * @param x第一个操作数
+	 * @param y第二个操作数
+	 * @return 结果
+	 */
+	public char and(char x, char y) {
+		if (x == '0' || y == '0') {
+			return '0';
+		} else {
+			return '1';
+		}
+	}
+
+	/**
+	 * 或门
+	 * 
+	 * @param x第一个操作数
+	 * @param y第二个操作数
+	 * @return 结果
+	 */
+	public char or(char x, char y) {
+		if (x == '1' || y == '1') {
+			return '1';
+		} else {
+			return '0';
+		}
+	}
+
+	/**
+	 * 异或门
+	 * 
+	 * @param x第一个操作数
+	 * @param y第二个操作数
+	 * @return 结果
+	 */
+	public char xor(char x, char y) {
+		if (x == y) {
+			return '0';
+		} else {
+			return '1';
+		}
+	}
+
+	/**
+	 * 非门
+	 * 
+	 * @param x操作数
+	 * @return 结果
+	 */
+	public char not(char x) {
+		if (x == '1') {
+			return '0';
+		} else {
+			return '1';
+		}
 	}
 }
