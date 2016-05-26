@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 /**
  * 模拟ALU进行整数和浮点数的四则运算
  * 
@@ -18,8 +20,45 @@ public class ALU {
 	 * @return number的二进制补码表示，长度为length
 	 */
 	public String integerRepresentation(String number, int length) {
-		// TODO YOUR CODE HERE.
-		return null;
+		ArrayList<Integer> bits = new ArrayList<Integer>();
+
+		int num = Integer.parseInt(number);
+		boolean isMinus = false;
+		if (num < 0) {
+			num = -num;
+			isMinus = true;
+		}
+
+		for (int i = 0; (num / 2) != 0; i++) {
+
+			bits.add(num % 2);
+			num = num / 2;
+		}
+		
+		if (number != "0") {
+			bits.add(1);
+		} else {
+			bits.add(0);
+		}
+		
+		String[] output = new String[length];
+		for (int i = 0; i < length; i++) {
+			output[i] = "0";
+		}
+		
+		for (int i = 0; i < bits.size(); i++) {
+			output[length - i - 1] = String.valueOf(bits.get(i));
+		}
+		
+		String result = "";
+		for (int i = 0; i < length; i++) {
+			result += output[i];
+		}
+		
+		if (isMinus) {
+			result = this.oneAdder(this.negation(result)).substring(1);
+		}
+		return result;
 	}
 
 	/**
@@ -230,19 +269,19 @@ public class ALU {
 	 * @return 相加的结果，用长度为2的字符串表示，第1位表示进位，第2位表示和
 	 */
 	public String fullAdder(char x, char y, char c) {
-		int xInt=x-'0';
-		int yInt=y-'0';
-		int cInt=c-'0';
-		
-		int sum=0;
-		int carrier=0;
-		
-		sum=xInt^yInt^cInt;
-		carrier=(xInt&yInt)|(cInt&(xInt|yInt));
-		
-		String s=String.valueOf(sum);
-		String ca=String.valueOf(carrier);
-		String result=ca+s;
+		int xInt = x - '0';
+		int yInt = y - '0';
+		int cInt = c - '0';
+
+		int sum = 0;
+		int carrier = 0;
+
+		sum = xInt ^ yInt ^ cInt;
+		carrier = (xInt & yInt) | (cInt & (xInt | yInt));
+
+		String s = String.valueOf(sum);
+		String ca = String.valueOf(carrier);
+		String result = ca + s;
 		return result;
 	}
 
