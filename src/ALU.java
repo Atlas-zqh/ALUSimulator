@@ -230,8 +230,20 @@ public class ALU {
 	 * @return 相加的结果，用长度为2的字符串表示，第1位表示进位，第2位表示和
 	 */
 	public String fullAdder(char x, char y, char c) {
-		// TODO YOUR CODE HERE.
-		return null;
+		int xInt=x-'0';
+		int yInt=y-'0';
+		int cInt=c-'0';
+		
+		int sum=0;
+		int carrier=0;
+		
+		sum=xInt^yInt^cInt;
+		carrier=(xInt&yInt)|(cInt&(xInt|yInt));
+		
+		String s=String.valueOf(sum);
+		String ca=String.valueOf(carrier);
+		String result=ca+s;
+		return result;
 	}
 
 	/**
