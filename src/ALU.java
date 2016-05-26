@@ -23,6 +23,11 @@ public class ALU {
 		ArrayList<Integer> bits = new ArrayList<Integer>();
 
 		int num = Integer.parseInt(number);
+
+		if (num >= Math.pow(2.0, (double) (length - 1)) || num < -Math.pow(2.0, (double) (length - 1))) {
+			return "Number Out Of Range!";
+		}
+
 		boolean isMinus = false;
 		if (num < 0) {
 			num = -num;
@@ -34,27 +39,27 @@ public class ALU {
 			bits.add(num % 2);
 			num = num / 2;
 		}
-		
+
 		if (number != "0") {
 			bits.add(1);
 		} else {
 			bits.add(0);
 		}
-		
+
 		String[] output = new String[length];
 		for (int i = 0; i < length; i++) {
 			output[i] = "0";
 		}
-		
+
 		for (int i = 0; i < bits.size(); i++) {
 			output[length - i - 1] = String.valueOf(bits.get(i));
 		}
-		
+
 		String result = "";
 		for (int i = 0; i < length; i++) {
 			result += output[i];
 		}
-		
+
 		if (isMinus) {
 			result = this.oneAdder(this.negation(result)).substring(1);
 		}
