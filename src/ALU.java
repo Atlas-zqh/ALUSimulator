@@ -110,7 +110,22 @@ public class ALU {
 	 */
 	public String integerTrueValue(String operand) {
 		// TODO YOUR CODE HERE.
-		return null;
+		char[] bits=operand.toCharArray();
+		boolean isMinus=false;
+		
+		if(bits[0]=='1'){
+			isMinus=true;
+		}
+		int sum=0;
+		for(int i=1;i<operand.length();i++){
+			sum+=(bits[i]-'0')*(int)Math.pow(2.0, operand.length()-i-1);
+		}
+		if(isMinus){
+			sum+=Math.pow(-2.0, operand.length()-1);
+		}
+		String result=String.valueOf(sum);
+		
+		return result;
 	}
 
 	/**
