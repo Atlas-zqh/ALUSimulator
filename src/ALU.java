@@ -110,21 +110,21 @@ public class ALU {
 	 */
 	public String integerTrueValue(String operand) {
 		// TODO YOUR CODE HERE.
-		char[] bits=operand.toCharArray();
-		boolean isMinus=false;
-		
-		if(bits[0]=='1'){
-			isMinus=true;
+		char[] bits = operand.toCharArray();
+		boolean isMinus = false;
+
+		if (bits[0] == '1') {
+			isMinus = true;
 		}
-		int sum=0;
-		for(int i=1;i<operand.length();i++){
-			sum+=(bits[i]-'0')*(int)Math.pow(2.0, operand.length()-i-1);
+		int sum = 0;
+		for (int i = 1; i < operand.length(); i++) {
+			sum += (bits[i] - '0') * (int) Math.pow(2.0, operand.length() - i - 1);
 		}
-		if(isMinus){
-			sum+=Math.pow(-2.0, operand.length()-1);
+		if (isMinus) {
+			sum += Math.pow(-2.0, operand.length() - 1);
 		}
-		String result=String.valueOf(sum);
-		
+		String result = String.valueOf(sum);
+
 		return result;
 	}
 
@@ -313,7 +313,34 @@ public class ALU {
 	 */
 	public String claAdder(String operand1, String operand2, char c) {
 		// TODO YOUR CODE HERE.
-		return null;
+		char[] bits1 = operand1.toCharArray();
+		char[] bits2 = operand2.toCharArray();
+		char[] resultBits = new char[5];
+		char[] ca = new char[5];
+
+		char[] Pi = new char[4];
+		char[] Gi = new char[4];
+		for (int i = 0; i < 4; i++) {
+			Pi[i] = or(bits1[i], bits2[i]);
+			Gi[i] = and(bits1[i], bits2[i]);
+		}
+		ca[0] = c;
+		ca[1] = or(Gi[3], and(Pi[3], ca[0]));
+		ca[2] = or(Gi[2], or(and(Pi[2], Gi[3]), and(ca[0], and(Pi[3], Pi[2]))));
+		ca[3] = or(Gi[1],
+				or(and(Pi[1], Gi[2]), or(and(Pi[1], and(Pi[2], Gi[3])), and(and(Pi[1], Pi[2]), and(Pi[3], ca[0])))));
+		ca[4] = or(Gi[0], or(and(Pi[0], Gi[1]), or(and(Pi[0], and(Pi[1], Gi[2])),
+				or(and(and(Pi[0], Pi[1]), and(Pi[2], Gi[3])), and(and(Pi[0], Pi[1]), and(and(Pi[2], Pi[3]), ca[0]))))));
+
+		for (int i = 0; i < 4; i++) {
+			resultBits[5 - i - 1] = this.fullAdder(bits1[4 - i - 1], bits2[4 - i - 1], ca[i]).charAt(1);
+		}
+		resultBits[0] = ca[4];
+		String result = "";
+		for (int i = 0; i < 5; i++) {
+			result += resultBits[i];
+		}
+		return result;
 	}
 
 	/**
@@ -349,7 +376,25 @@ public class ALU {
 	}
 
 	/**
-	 * 整数加法，要求调用{@link #claAdder(String, String, char) claAdder}方法实现。<br/>
+	 * 加法器，要求调用{@link #claAdder(String, String, char) claAdder}方法实现。<br/>
+	 * 
+	 * @param operand1
+	 *            二进制补码表示的被加数
+	 * @param operand2
+	 *            二进制补码表示的加数
+	 * @param c
+	 *            最低位进位
+	 * @param length
+	 *            存放操作数的寄存器的长度，为4的倍数。length不小于操作数的长度，当某个操作数的长度小于length时，
+	 *            需要在高位补符号位
+	 * @return 长度为length+1的字符串表示的计算结果，其中第1位指示是否溢出（溢出为1，否则为0），后length位是相加结果
+	 */
+	public String adder(String operand1, String operand2, char c, int length) {
+		return null;
+	}
+
+	/**
+	 * 整数加法，要求调用{@link #adder(String, String, char, int) adder}方法实现。<br/>
 	 * 例：integerAddition("0100", "0011", 8)
 	 * 
 	 * @param operand1
@@ -367,8 +412,7 @@ public class ALU {
 	}
 
 	/**
-	 * 整数减法，可调用{@link #integerAddition(String, String, char, int)
-	 * integerAddition}方法实现。<br/>
+	 * 整数减法，要求调用{@link #adder(String, String, char, int) adder}方法实现。<br/>
 	 * 例：integerSubtraction("0100", "0011", 8)
 	 * 
 	 * @param operand1
@@ -386,8 +430,8 @@ public class ALU {
 	}
 
 	/**
-	 * 整数乘法，使用Booth算法实现，可调用{@link #integerAddition(String, String, char, int)
-	 * integerAddition}等方法。<br/>
+	 * 整数乘法，使用Booth算法实现，可调用{@link #adder(String, String, char, int) adder}等方法。
+	 * <br/>
 	 * 例：integerMultiplication("0100", "0011", 8)
 	 * 
 	 * @param operand1
@@ -405,8 +449,7 @@ public class ALU {
 	}
 
 	/**
-	 * 整数的不恢复余数除法，可调用{@link #integerAddition(String, String, char, int)
-	 * integerAddition}等方法实现。<br/>
+	 * 整数的不恢复余数除法，可调用{@link #adder(String, String, char, int) adder}等方法实现。<br/>
 	 * 例：integerDivision("0100", "0011", 8)
 	 * 
 	 * @param operand1
@@ -425,9 +468,9 @@ public class ALU {
 	}
 
 	/**
-	 * 带符号整数加法，要求调用{@link #integerAddition(String, String, int) integerAddition}
-	 * 、{@link #integerSubtraction(String, String, int) integerSubtraction}
-	 * 等方法实现。 但符号的确定、结果是否修正等需要按照相关算法进行，不能直接转为补码表示后运算再转回来<br/>
+	 * 带符号整数加法，可调用{@link #adder(String, String, char, int) adder} 方法实现。
+	 * 但符号的确定、结果是否修正等需要按照相关算法进行，不能直接将操作数转为补码表示后使用integerAddition、
+	 * integerSubtraction实现。<br/>
 	 * 例：signedAddition("1100", "1011", 8)
 	 * 
 	 * @param operand1
