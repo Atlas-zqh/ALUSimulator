@@ -390,7 +390,35 @@ public class ALU {
 	 * @return 长度为length+1的字符串表示的计算结果，其中第1位指示是否溢出（溢出为1，否则为0），后length位是相加结果
 	 */
 	public String adder(String operand1, String operand2, char c, int length) {
-		return null;
+		String result = "";
+		// 扩展操作数至length长度
+		while (operand1.length() < length) {
+			operand1 = operand1.substring(0, 1) + operand1;
+		}
+		while (operand2.length() < length) {
+			operand2 = operand2.substring(0, 1) + operand2;
+		}
+
+		for (int i = length - 1; i >= 3; i = i - 4) {
+			result = this.claAdder(operand1.substring(i - 3, i + 1), operand2.substring(i - 3, i + 1), c).substring(1)
+					+ result;
+			c = this.claAdder(operand1.substring(i - 3, i + 1), operand2.substring(i - 3, i + 1), c).charAt(0);
+		}
+
+		if (operand1.charAt(0) != operand2.charAt(0)) {
+			// 如果两数异号，不可能溢出
+			result = "0" + result;
+		} else {
+			if (result.charAt(0) != operand1.charAt(0)) {
+				// 如果两数同号，且结果的符号位与原操作数符号不同，则溢出
+				result = "1" + result;
+			} else {
+				// 如果两数同号，且结果的符号位与原操作数相同，则不溢出
+				result = "0" + result;
+			}
+		}
+
+		return result;
 	}
 
 	/**
@@ -407,8 +435,8 @@ public class ALU {
 	 * @return 长度为length+1的字符串表示的计算结果，其中第1位指示是否溢出（溢出为1，否则为0），后length位是相加结果
 	 */
 	public String integerAddition(String operand1, String operand2, int length) {
-		// TODO YOUR CODE HERE.
-		return null;
+		String result = this.adder(operand1, operand2, '0', length);
+		return result;
 	}
 
 	/**
@@ -425,8 +453,10 @@ public class ALU {
 	 * @return 长度为length+1的字符串表示的计算结果，其中第1位指示是否溢出（溢出为1，否则为0），后length位是相减结果
 	 */
 	public String integerSubtraction(String operand1, String operand2, int length) {
-		// TODO YOUR CODE HERE.
-		return null;
+		String result = "";
+		operand2 = this.oneAdder(this.negation(operand2)).substring(1);
+		result = this.adder(operand1, operand2, '0', length);
+		return result;
 	}
 
 	/**
