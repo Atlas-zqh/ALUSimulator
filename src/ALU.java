@@ -542,7 +542,89 @@ public class ALU {
 	 */
 	public String integerDivision(String operand1, String operand2, int length) {
 		// TODO YOUR CODE HERE.
-		return null;
+		int n = 0;
+		boolean overflow = false;
+		boolean differentSigns = false;
+		String quotient = operand1;
+		String remainder = "";
+		String result = "";
+		// 判断是否符号相同
+		if (operand1.charAt(0) != operand2.charAt(0)) {
+			differentSigns = true;
+		} else {
+			differentSigns = false;
+		}
+		// 将被除数补至length长度，并将其放入quotient寄存器
+		while (quotient.length() < length) {
+			quotient = operand1.substring(0, 1) + quotient;
+		}
+		// 在被除数前扩展length位符号位，并存入余数寄存器
+		for (int i = 0; i < length; i++) {
+			remainder += operand1.substring(0, 1);
+		}
+		// 如果余数寄存器中的数与除数符号相同，做减，否则做加。
+		// 若结果与除数符号相同，商寄存器后补1 否则补0。 左移;重复n次
+		String temp = "";
+		while (n < length) {
+			if (remainder.charAt(0) == operand2.charAt(0)) {
+				remainder = this.integerSubtraction(remainder, operand2, length).substring(1);
+			} else {
+				remainder = this.integerAddition(remainder, operand2, length).substring(1);
+			}
+
+			if (remainder.charAt(0) == operand2.charAt(0)) {
+				quotient += "1";
+			} else {
+				quotient += "0";
+			}
+
+			temp = remainder + quotient;
+			remainder = this.leftShift(temp, 1).substring(0, length);
+			quotient = this.leftShift(temp, 1).substring(length, 2 * length);
+
+			n++;
+		}
+		// 需要再做一次
+		// 如果余数寄存器中的数与除数符号相同，做减，否则做加。
+		// 若结果与除数符号相同，商寄存器后补1 否则补0。
+		if (remainder.charAt(0) == operand2.charAt(0)) {
+			remainder = this.integerSubtraction(remainder, operand2, length).substring(1);
+		} else {
+			remainder = this.integerAddition(remainder, operand2, length).substring(1);
+		}
+
+		if (remainder.charAt(0) == operand2.charAt(0)) {
+			quotient += "1";
+		} else {
+			quotient += "0";
+		}
+		// 左移商，若商符号与除数相反，则+1
+		quotient = this.leftShift(quotient, 1).substring(0, length);
+		if (quotient.charAt(0) != operand2.charAt(0)) {
+			quotient = this.oneAdder(quotient).substring(1);
+		}
+		// 若余数与除数符号相同，则余数减除数，否则做加法。
+		if (remainder.charAt(0) == operand2.charAt(0)) {
+			remainder = this.integerSubtraction(remainder, operand2, length).substring(1);
+		} else {
+			remainder = this.integerAddition(remainder, operand2, length).substring(1);
+		}
+		result = quotient + remainder;
+
+		// 判断溢出条件
+		if ((differentSigns && (quotient.charAt(0) == '1')) || ((!differentSigns) && (quotient.charAt(0) == '0'))) {
+			overflow = false;
+		} else {
+			overflow = true;
+		}
+		// 添加溢出位
+		if (overflow) {
+			result = "1" + result;
+		} else {
+			result = "0" + result;
+		}
+
+		return result;
 	}
 
 	/**
