@@ -81,6 +81,7 @@ public class ALU {
 	 */
 	public String floatRepresentation(String number, int eLength, int sLength) {
 		// TODO YOUR CODE HERE.
+
 		return null;
 	}
 
@@ -474,8 +475,55 @@ public class ALU {
 	 * @return 长度为length+1的字符串表示的相乘结果，其中第1位指示是否溢出（溢出为1，否则为0），后length位是相乘结果
 	 */
 	public String integerMultiplication(String operand1, String operand2, int length) {
-		// TODO YOUR CODE HERE.
-		return null;
+		int n = 0;
+		boolean overflow = false;
+		boolean differentSigns = false;
+
+		// 判断是否符号相同
+		if (operand1.charAt(0) != operand2.charAt(0)) {
+			differentSigns = true;
+		} else {
+			differentSigns = false;
+		}
+
+		// 扩展operand2至length+1长度
+		while (operand2.length() < length) {
+			operand2 = "0" + operand2;
+		}
+		operand2 = operand2 + "0";
+
+		while (n < operand1.length()) {
+			if ((operand2.charAt(operand2.length() - 1) - '0') - (operand2.charAt(operand2.length() - 2) - '0') == 0) {
+				operand2 = this.ariRightShift(operand2, 1);
+			} else if ((operand2.charAt(operand2.length() - 1) - '0')
+					- (operand2.charAt(operand2.length() - 2) - '0') == 1) {
+				operand2 = this.integerAddition(operand1, operand2.substring(0, operand1.length()), operand1.length())
+						.substring(1) + operand2.substring(operand1.length());
+				operand2 = this.ariRightShift(operand2, 1);
+			} else if ((operand2.charAt(operand2.length() - 1) - '0')
+					- (operand2.charAt(operand2.length() - 2) - '0') == -1) {
+				operand2 = this
+						.integerSubtraction(operand2.substring(0, operand1.length()), operand1, operand1.length())
+						.substring(1) + operand2.substring(operand1.length());
+				operand2 = this.ariRightShift(operand2, 1);
+			}
+			n++;
+		}
+
+		String result = operand2.substring(0, operand2.length() - 1);
+		if ((differentSigns && result.charAt(0) == '0') || ((!differentSigns) && result.charAt(0) == '1')) {
+			overflow = true;
+		} else {
+			overflow = false;
+		}
+
+		if (overflow) {
+			result = "1" + result;
+		} else {
+			result = "0" + result;
+		}
+
+		return result;
 	}
 
 	/**
