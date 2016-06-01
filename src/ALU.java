@@ -80,9 +80,72 @@ public class ALU {
 	 * @return number的二进制表示，长度为 1+eLength+sLength。从左向右，依次为符号、指数（移码表示）、尾数（首位隐藏）
 	 */
 	public String floatRepresentation(String number, int eLength, int sLength) {
-		// TODO YOUR CODE HERE.
+		String result = "";
+		// 判断是否为负数
+		boolean isMinus = false;
+		if (number.startsWith("-")) {
+			isMinus = true;
+			number = number.substring(1);
+		}
 
-		return null;
+		double num = Double.parseDouble(number);
+		// 考虑+0和-0的情况
+		if (num == 0) {
+			for (int i = 0; i < eLength + sLength; i++) {
+				result += "0";
+			}
+			return (isMinus ? "1" : "0") + result;
+		}
+		// 考虑正负无穷的情况
+		if (Math.abs(num) > (2 - Math.pow(2.0, -sLength)) * (int) Math.pow(2.0, (int) Math.pow(2.0, eLength - 1))) {
+			for (int i = 0; i < eLength; i++) {
+				result += "1";
+			}
+			for (int i = 0; i < sLength; i++) {
+				result += "0";
+			}
+			return (isMinus ? "1" : "0") + result;
+		}
+
+		// 考虑NaN的情况
+
+		int integerPart = (int) num;
+		double fractionsPart = num - integerPart;
+		// 分别得到整数部分和小数部分的二进制表示
+		String integerRep = this.trueFormRepresentation(String.valueOf(integerPart));
+		String fractionRep = this.fractionRepresentation(String.valueOf(fractionsPart), eLength + sLength);
+		// 得到二进制表示的数，并保持小数点前只有一位
+		int exponent = 0;// 指数
+		String temp = integerRep + fractionRep;
+		String numberInBinary = "";
+		if (!number.startsWith("0")) {
+			exponent = integerRep.length() - 1;
+		} else {
+			while (temp.startsWith("0")) {
+				temp = this.leftShift(temp, 1);
+				exponent--;
+			}
+		}
+		numberInBinary = temp.substring(0, 1) + "." + temp.substring(1);
+		// 考虑反规格化数的情况
+		if (Math.abs(num) < Math.pow(2.0, Math.pow(2.0, -((int) Math.pow(2.0, eLength) - 2) / 2))) {
+			for (int i = 0; i < eLength; i++) {
+				result += "0";
+			}
+			numberInBinary = this.logRightShift(temp, 1);
+			return (isMinus ? "1" : "0") + result + numberInBinary.substring(1, 1 + sLength);
+		}
+
+		// 表示指数
+		String ex = this.trueFormRepresentation(String.valueOf(exponent + ((int) Math.pow(2.0, eLength) - 2) / 2));
+		while (ex.length() < eLength) {
+			ex = "0" + ex;
+		}
+		// 表示尾数
+		String significand = numberInBinary.substring(2, 2 + sLength);
+
+		result = (isMinus ? "1" : "0") + ex + significand;
+		return result;
 	}
 
 	/**
@@ -98,7 +161,17 @@ public class ALU {
 	 */
 	public String ieee754(String number, int length) {
 		// TODO YOUR CODE HERE.
-		return null;
+		int eLength32 = 8;
+		int sLength32 = 23;
+		int eLength64 = 11;
+		int sLength64 = 52;
+		String result = "";
+		if (length == 32) {
+			result = this.floatRepresentation(number, eLength32, sLength32);
+		} else if (length == 64) {
+			result = this.floatRepresentation(number, eLength64, sLength64);
+		}
+		return result;
 	}
 
 	/**
@@ -644,7 +717,14 @@ public class ALU {
 	 *         后length位是相加结果
 	 */
 	public String signedAddition(String operand1, String operand2, int length) {
-		// TODO YOUR CODE HERE.
+		// 将操作数扩展到length+1长度,最前一位是符号位
+		while (operand1.length() < length + 1) {
+			operand1 = operand1.substring(0, 1) + "0" + operand1.substring(1);
+		}
+		while (operand2.length() < length + 1) {
+			operand2 = operand2.substring(0, 1) + "0" + operand2.substring(1);
+		}
+
 		return null;
 	}
 
@@ -794,4 +874,48 @@ public class ALU {
 			return '1';
 		}
 	}
+
+	/**
+	 * 求一个正整数或0的原码表示
+	 * 
+	 * @param number
+	 *            操作数，为正整数或0
+	 * @return 二进制原码表示的数
+	 */
+	public String trueFormRepresentation(String number) {
+		String result = "";
+		int num = Integer.parseInt(number);
+		while (num / 2 > 0) {
+			result = String.valueOf(num % 2) + result;
+			num /= 2;
+		}
+		if (num != 0) {
+			result = "1" + result;
+		} else {
+			result = "0" + result;
+		}
+		return result;
+	}
+
+	/**
+	 * 求一个小数的二进制表示
+	 * 
+	 * @param number
+	 *            小数
+	 * @param length
+	 *            所求二进制表示的长度
+	 * @return 小数的二进制表示
+	 */
+	public String fractionRepresentation(String number, int length) {
+		String result = "";
+		double fraction = Double.parseDouble(number);
+
+		while (result.length() < length) {
+			result = result + String.valueOf((int) Math.floor(fraction * 2));
+
+			fraction = fraction * 2 - Math.floor(fraction * 2);
+		}
+		return result;
+	}
+
 }
