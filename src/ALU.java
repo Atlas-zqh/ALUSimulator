@@ -830,21 +830,51 @@ public class ALU {
 	 * @return 长度为length+2的字符串表示的计算结果，其中第1位指示是否溢出（溢出为1，否则为0），第2位为符号位，
 	 *         后length位是相加结果
 	 */
+	//TODO 还没做完呢！
 	public String signedAddition(String operand1, String operand2, int length) {
-		// 将操作数扩展到length+1长度,最前一位是符号位
-		while (operand1.length() < length + 1) {
+		//策略：如果两个数同号，则做加法，否则，做减法
+		//*************加法：直接加*************
+		//忽略第一位符号位，后面的length-1位做加法，若最高位有进位，则意味着溢出；
+		//结果的符号和原来的加数、被加数的符号相同
+		//*************减法：******************
+		//求operand2的补码
+		//对length-1位做加法，如果最高位有进位，则正确（符号与被减数相同）
+		//如果没有进位，正确结果为计算结果（length-1位）的补码（符号与被减数相反）
+		
+		boolean isOverflow=false;
+		// 将操作数扩展到length长度,最前一位是符号位
+		while (operand1.length() < length) {
 			operand1 = operand1.substring(0, 1) + "0" + operand1.substring(1);
 		}
-		while (operand2.length() < length + 1) {
+		while (operand2.length() < length) {
 			operand2 = operand2.substring(0, 1) + "0" + operand2.substring(1);
 		}
+		
+		String temp="";
+		String result="";
+		//符号相同，则做加法
+		if(operand1.charAt(0)==operand2.charAt(0)){
+			temp=this.adder("0"+operand1.substring(1), "0"+operand2.substring(1), '0', length);
+			if(temp.charAt(1)=='1'){
+				isOverflow=true;
+			}
+			result=String.valueOf(isOverflow?'1':'0')+operand1.substring(0, 1)+temp.substring(2);
+		}else{
+			operand2=this.oneAdder(this.negation(operand2)).substring(1);
+			temp=this.adder("0"+operand1.substring(1), "0"+operand2.substring(1), '0', length);
+			if(temp.charAt(1)=='1'){
+				result="0"+operand1.substring(0, 1)+temp.substring(2);
+			}else{
+				result="0"+this.negation(operand1.substring(0, 1))+this.oneAdder(this.negation(temp.substring(2))).substring(1);
+			}
+		}
 
-		return null;
+		return result;
 	}
 
 	/**
-	 * 浮点数加法，可调用{@link #integerAddition(String, String, char, int)
-	 * intergerAddition}等方法实现。<br/>
+	 * 浮点数加法，可调用{@link #signedAddition(String, String, int)
+	 * SignedAddition}等方法实现。<br/>
 	 * 例：floatAddition("00111111010100000", "00111111001000000", 8, 8, 8)
 	 * 
 	 * @param operand1
@@ -866,7 +896,7 @@ public class ALU {
 	}
 
 	/**
-	 * 浮点数减法，可调用{@link #floatAddition(String, String, int, int, int)
+	 * 浮点数减法，要求调用{@link #floatAddition(String, String, int, int, int)
 	 * floatAddition}方法实现。<br/>
 	 * 例：floatSubtraction("00111111010100000", "00111111001000000", 8, 8, 8)
 	 * 
@@ -889,8 +919,8 @@ public class ALU {
 	}
 
 	/**
-	 * 浮点数乘法，可调用{@link #integerAddition(String, String, char, int)
-	 * integerAddition}等方法实现。<br/>
+	 * 浮点数乘法，可调用{@link #integerMultiplication(String, String, int)
+	 * integerMultiplication}等方法实现。<br/>
 	 * 例：floatMultiplication("00111110111000000", "00111111000000000", 8, 8)
 	 * 
 	 * @param operand1
@@ -910,8 +940,8 @@ public class ALU {
 	}
 
 	/**
-	 * 浮点数除法，可调用{@link #integerAddition(String, String, char, int)
-	 * integerAddition}等方法实现。<br/>
+	 * 浮点数除法，可调用{@link #integerDivision(String, String, int)
+	 * integerDivision}等方法实现。<br/>
 	 * 例：floatDivision("00111110111000000", "00111111000000000", 8, 8)
 	 * 
 	 * @param operand1
@@ -1015,7 +1045,7 @@ public class ALU {
 	 * 求一个小数的二进制表示
 	 * 
 	 * @param number
-	 *            小数
+	 *            小数(0.f)
 	 * @param length
 	 *            所求二进制表示的长度
 	 * @return 小数的二进制表示
