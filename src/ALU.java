@@ -79,6 +79,7 @@ public class ALU {
 	 *            尾数的长度，取值大于等于 4
 	 * @return number的二进制表示，长度为 1+eLength+sLength。从左向右，依次为符号、指数（移码表示）、尾数（首位隐藏）
 	 */
+	//TODO NaN的情况
 	public String floatRepresentation(String number, int eLength, int sLength) {
 		String result = "";
 		// 判断是否为负数
@@ -216,8 +217,121 @@ public class ALU {
 	 *         NaN表示为“NaN”
 	 */
 	public String floatTrueValue(String operand, int eLength, int sLength) {
-		// TODO YOUR CODE HERE.
-		return null;
+		boolean isMinus = false;
+		boolean exponentAllOne = false;
+		boolean exponentAllZero = false;
+		boolean signiAllZero = false;
+
+		if (operand.startsWith("1")) {
+			isMinus = true;
+		}
+
+		String exponent = operand.substring(1, 1 + eLength);
+		String significand = operand.substring(1 + eLength);
+
+		char[] expo = exponent.toCharArray();
+		char[] signi = significand.toCharArray();
+
+		// +Inf,-Inf,NaN
+		for (int i = 0; i < eLength; i++) {
+			if (expo[i] == '1') {
+				exponentAllOne = true;
+			} else {
+				exponentAllOne = false;
+				break;
+			}
+
+		}
+		for (int i = 0; i < sLength; i++) {
+			if (signi[i] != '0') {
+				signiAllZero = false;
+				break;
+			} else {
+				signiAllZero = true;
+			}
+		}
+		if (exponentAllOne && (!signiAllZero)) {
+			return "NaN";
+		}
+
+		if (exponentAllOne && signiAllZero) {
+			if (isMinus) {
+				return "-Inf";
+			} else {
+				return "+Inf";
+			}
+		}
+
+		// 0
+		for (int i = 0; i < expo.length; i++) {
+			if (expo[i] == '0') {
+				exponentAllZero = true;
+			} else {
+				exponentAllZero = false;
+				break;
+			}
+		}
+		if (exponentAllZero && signiAllZero) {
+			return "0";
+		}
+
+		// 反规格化非零数
+		double abnormalNum = 0;
+		if (exponentAllZero && !signiAllZero) {
+			String f = "0" + significand;// 分数为0.f
+			for (int i = 0; i < (Math.pow(2.0, eLength - 1) - 2); i++) {
+				f = "0" + f;
+			}
+			for (int i = 0; i < f.substring(1).length(); i++) {
+				abnormalNum += (f.substring(1).charAt(i) - '0') * (Math.pow(2.0, -(i + 1)));
+			}
+
+			return String.valueOf(abnormalNum);
+		}
+
+		// 规格化非零数
+		int e = 0;
+		for (int i = expo.length - 1; i >= 0; i--) {
+			e += (int) Math.pow(2.0, eLength - i - 1) * (expo[i] - '0');
+		}
+		String temp = "1" + significand;
+		String frontPoint = "";
+		String behindPoint = "";
+		// 若指数为正，则小数点需右移
+		if (e - ((int) Math.pow(2.0, eLength - 1) - 1) > 0) {
+			for (int i = 0; i < e - ((int) Math.pow(2.0, eLength - 1) - 1); i++) {
+				temp = temp + "0";
+			}
+			frontPoint = temp.substring(0, e - ((int) Math.pow(2.0, eLength - 1) - 1) + 1);
+			behindPoint = temp.substring(e - ((int) Math.pow(2.0, eLength - 1) - 1) + 1);
+			// 若指数为负，则小数点左移
+		} else if (e - ((int) Math.pow(2.0, eLength - 1) - 1) < 0) {
+			for (int i = 0; i < -(e - ((int) Math.pow(2.0, eLength - 1) - 1)); i++) {
+				temp = "0" + temp;
+			}
+			frontPoint = temp.substring(0, 1);
+			behindPoint = temp.substring(1);
+		} else if (e - ((int) Math.pow(2.0, eLength - 1) - 1) == 0) {
+			frontPoint = temp.substring(0, 1);
+			behindPoint = temp.substring(1);
+		}
+
+		// 根据temp，计算结果
+		int integerPart = 0;// 整数部分
+		double fractionPart = 0;// 小数部分
+		for (int i = frontPoint.length() - 1; i >= 0; i--) {
+			integerPart += (frontPoint.charAt(i) - '0') * ((int) Math.pow(2.0, frontPoint.length() - 1 - i));
+		}
+		for (int i = 0; i < behindPoint.length(); i++) {
+			fractionPart += (behindPoint.charAt(i) - '0') * (Math.pow(2.0, -(i + 1)));
+		}
+		String result = String.valueOf(integerPart + fractionPart);
+
+		if (isMinus) {
+			result = "-" + result;
+		}
+
+		return result;
 	}
 
 	/**
