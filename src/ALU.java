@@ -842,14 +842,14 @@ public class ALU {
 
 		boolean isOverflow = false;
 		// 将操作数扩展到length+1长度,最前一位是符号位
-		while (operand1.length()-1 < length) {
+		while (operand1.length() - 1 < length) {
 			operand1 = operand1.substring(0, 1) + "0" + operand1.substring(1);
 		}
-		while (operand2.length()-1 < length) {
+		while (operand2.length() - 1 < length) {
 			operand2 = operand2.substring(0, 1) + "0" + operand2.substring(1);
 		}
 
-		System.out.println(operand1+"   "+operand2);
+		System.out.println(operand1 + "   " + operand2);
 		String temp = "";
 		String result = "";
 		// 符号相同，则做加法
@@ -858,10 +858,10 @@ public class ALU {
 			if (temp.charAt(1) == '1') {
 				isOverflow = true;
 			}
-			result = isOverflow ? "1" : "0"+ operand1.substring(0, 1) + temp.substring(1);
+			result = isOverflow ? "1" : "0" + operand1.substring(0, 1) + temp.substring(1);
 		} else {
 			operand2 = this.oneAdder(this.negation(operand2)).substring(1);
-			temp = this.adder("0"+operand1.substring(1), "0"+operand2.substring(1), '0', length+4);
+			temp = this.adder("0" + operand1.substring(1), "0" + operand2.substring(1), '0', length + 4);
 			System.out.println(temp);
 			if (temp.charAt(4) == '1') {
 				result = "0" + operand1.substring(0, 1) + temp.substring(5);
@@ -892,6 +892,7 @@ public class ALU {
 	 * @return 长度为2+eLength+sLength的字符串表示的相加结果，其中第1位指示是否指数上溢（溢出为1，否则为0），
 	 *         其余位从左到右依次为符号、指数（移码表示）、尾数（首位隐藏）。舍入策略为向0舍入
 	 */
+	// TODO 测试特别的情况，似乎正常情况已经能够通过测试
 	public String floatAddition(String operand1, String operand2, int eLength, int sLength, int gLength) {
 		// 如果X为0或Y为0，则结果为另一个操作数
 		// 直接返回
@@ -911,8 +912,8 @@ public class ALU {
 		String signi1 = operand1.substring(1 + eLength);
 		String expo2 = operand2.substring(1, 1 + eLength);
 		String signi2 = operand2.substring(1 + eLength);
-		
-		int expo=0;
+
+		int expo = 0;
 		int expo1TrueValue = Integer.parseInt(this.integerTrueValue("0" + expo1));
 		int expo2TrueValue = Integer.parseInt(this.integerTrueValue("0" + expo2));
 		// 若指数不相等，则将小的增大，右移尾数，且将右移出的位放在保护位中
@@ -921,7 +922,7 @@ public class ALU {
 		// temp为小数点前一位+尾数+保护位
 		String temp1 = "1" + signi1 + guardBits;
 		while (expo1TrueValue < expo2TrueValue) {
-			expo=expo2TrueValue;
+			expo = expo2TrueValue;
 			temp1 = this.logRightShift(temp1, 1);
 			expo1TrueValue++;
 			for (int i = 1; i <= sLength; i++) {
@@ -939,7 +940,7 @@ public class ALU {
 
 		String temp2 = "1" + signi2 + guardBits;
 		while (expo2TrueValue < expo1TrueValue) {
-			expo=expo1TrueValue;
+			expo = expo1TrueValue;
 			temp2 = this.logRightShift(temp2, 1);
 			expo2TrueValue++;
 			for (int i = 1; i <= sLength; i++) {
@@ -954,84 +955,87 @@ public class ALU {
 				return "0" + operand1;
 			}
 		}
-		
-		
 
 		// 带符号尾数相加
-		//添加符号
+		// 添加符号
 		temp1 = operand1.substring(0, 1) + temp1;
 		temp2 = operand2.substring(0, 1) + temp2;
 		// while(temp1.length()<(int)((temp1.length()+2)/4)*4){
 		// temp1=temp1.substring(0, 1)+"0"+temp1.substring(1);
 		// temp2=temp2.substring(0, 1)+"0"+temp2.substring(1);
 		// }
-		//相加结果为1位溢出位+1为符号位+无效位+结果
-		String addResult = this.signedAddition(temp1, temp2, (int)((temp1.length() + (temp1.length()%4==0?0:4)) / 4) * 4);
-		//结果为1位溢出位+1位符号位+结果
-		String result=addResult.substring(0, 2)+addResult.substring((int)(((temp1.length() + 2) / 4) * 4) - temp1.length() +1);
+		// 相加结果为1位溢出位+1为符号位+无效位+结果
+		String addResult = this.signedAddition(temp1, temp2,
+				(int) ((temp1.length() + (temp1.length() % 4 == 0 ? 0 : 4)) / 4) * 4);
+		// 结果为1位溢出位+1位符号位+结果
+		String result = addResult.substring(0, 2)
+				+ addResult.substring((int) (((temp1.length() + 2) / 4) * 4) - temp1.length() + 1);
 
-		//若结果的第一位不为1，则意味着尾数相加时没有产生进位至第一位，则第二位开始才是正确的结果
-		if(result.charAt(2)!='1'){
-			result=result.substring(1,2)+result.substring(3);
+		// 若结果的第一位不为1，则意味着尾数相加时没有产生进位至第一位，则第二位开始才是正确的结果
+		if (result.charAt(2) != '1') {
+			result = result.substring(1, 2) + result.substring(3);
 		}
-		
-		boolean isOverflow=false;//尾数是否溢出
-		boolean resultOverflow=false;//结果是否溢出（指数溢出）
-		
-		if(result.charAt(0)=='1'){
-			isOverflow=true;
+
+		boolean isOverflow = false;// 尾数是否溢出
+		boolean resultOverflow = false;// 结果是否溢出（指数溢出）
+
+		if (result.charAt(0) == '1') {
+			isOverflow = true;
 		}
-		 boolean resultIsMinus=false;
-		 if(result.charAt(1)=='1'){
-			 resultIsMinus=true;
-		 }
-		//若尾数溢出，则右移尾数，增量指数，若指数溢出，则将指数全设为1，尾数全为0，报告溢出
-		if(isOverflow){
-			result=this.ariRightShift(result.substring(1), 1);
+		boolean resultIsMinus = false;
+		if (result.charAt(1) == '1') {
+			resultIsMinus = true;
+		}
+		// 若尾数溢出，则右移尾数，增量指数，若指数溢出，则将指数全设为1，尾数全为0，报告溢出
+		if (isOverflow) {
+			result = this.ariRightShift(result.substring(1), 1);
 			expo++;
-			if(expo>=((int)Math.pow(2.0, eLength)-1)){
-				resultOverflow=true;
+			if (expo >= ((int) Math.pow(2.0, eLength) - 1)) {
+				resultOverflow = true;
 			}
 		}
-		
-		String returnResult="";
-		if(resultOverflow){
-			returnResult=resultIsMinus?"1":"0";
-			for(int i=0;i<eLength;i++){
-				returnResult=returnResult+"1";
+
+		String returnResult = "";
+		if (resultOverflow) {
+			returnResult = resultIsMinus ? "1" : "0";
+			for (int i = 0; i < eLength; i++) {
+				returnResult = returnResult + "1";
 			}
-			for(int j=0;j<sLength;j++){
-				returnResult=returnResult+"0";
+			for (int j = 0; j < sLength; j++) {
+				returnResult = returnResult + "0";
 			}
+
+			return "1" + returnResult;
 		}
-		
-		//规格化结果
-		while(result.charAt(2)!='1'){
-			result=result.substring(0, 2)+this.leftShift(result.substring(2), 1);
+
+		// 规格化结果
+		while (result.charAt(2) != '1') {
+			result = result.substring(0, 2) + this.leftShift(result.substring(2), 1);
 			expo--;
-			
-			if(expo<=0){
-				returnResult=resultIsMinus?"1":"0";
-				for(int i=0;i<eLength;i++){
-					returnResult=returnResult+"0";
+			// 指数下溢
+			if (expo <= 0) {
+				returnResult = resultIsMinus ? "1" : "0";
+				for (int i = 0; i < eLength; i++) {
+					returnResult = returnResult + "0";
 				}
-				returnResult=returnResult+result.substring(3,3+sLength);
-				
-				return returnResult;
+				// 右移一位，使指数为-2^(2^eLength-2)
+				returnResult = returnResult + this.logRightShift(result.substring(2), 1).substring(1, 1 + sLength);
+
+				return resultOverflow ? "1" : "0" + returnResult;
 			}
 		}
-		
-		returnResult=resultIsMinus?"1":"0";
-		if(this.trueFormRepresentation(String.valueOf(expo)).length()<eLength){
-			for(int i=0;i<eLength-this.trueFormRepresentation(String.valueOf(expo)).length();i++){
-				returnResult=returnResult+"0";
+
+		returnResult = resultIsMinus ? "1" : "0";
+		if (this.trueFormRepresentation(String.valueOf(expo)).length() < eLength) {
+			for (int i = 0; i < eLength - this.trueFormRepresentation(String.valueOf(expo)).length(); i++) {
+				returnResult = returnResult + "0";
 			}
 		}
-		returnResult=returnResult+this.trueFormRepresentation(String.valueOf(expo));
-		
-		returnResult=returnResult+result.substring(3,3+sLength);
-		
-		return returnResult;
+		returnResult = returnResult + this.trueFormRepresentation(String.valueOf(expo));
+
+		returnResult = returnResult + result.substring(3, 3 + sLength);
+
+		return resultOverflow ? "1" : "0" + returnResult;
 	}
 
 	/**
@@ -1052,9 +1056,14 @@ public class ALU {
 	 * @return 长度为2+eLength+sLength的字符串表示的相减结果，其中第1位指示是否指数上溢（溢出为1，否则为0），
 	 *         其余位从左到右依次为符号、指数（移码表示）、尾数（首位隐藏）。舍入策略为向0舍入
 	 */
+	// TODO 测试
 	public String floatSubtraction(String operand1, String operand2, int eLength, int sLength, int gLength) {
-		// TODO YOUR CODE HERE.
-		return null;
+		if (operand2.startsWith("0")) {
+			operand2 = "1" + operand2.substring(1);
+		} else if (operand2.startsWith("1")) {
+			operand2 = "0" + operand2.substring(1);
+		}
+		return this.floatAddition(operand1, operand2, eLength, sLength, gLength);
 	}
 
 	/**
@@ -1073,9 +1082,96 @@ public class ALU {
 	 * @return 长度为2+eLength+sLength的字符串表示的相乘结果,其中第1位指示是否指数上溢（溢出为1，否则为0），
 	 *         其余位从左到右依次为符号、指数（移码表示）、尾数（首位隐藏）。舍入策略为向0舍入
 	 */
+	// TODO 未测试
 	public String floatMultiplication(String operand1, String operand2, int eLength, int sLength) {
 		// TODO YOUR CODE HERE.
-		return null;
+		// 如果X为0或Y为0，则结果为0
+		// 直接返回
+		String returnResult = "";
+
+		if (this.floatTrueValue(operand1, eLength, sLength).equals("0")
+				|| this.floatTrueValue(operand2, eLength, sLength).equals("0")) {
+			for (int i = 0; i < 2 + eLength + sLength; i++) {
+				returnResult += "0";
+			}
+
+			return returnResult;
+		}
+
+		boolean resultIsMinus = false;
+		if (operand1.charAt(0) != operand2.charAt(0)) {
+			resultIsMinus = true;
+		}
+
+		// 指数相加，减偏值，若指数上溢，则返回+Inf/-Inf
+		// 若指数下溢，则输出反规格化数
+		// 若不溢出，则尾数相乘，再规格化
+		boolean isOverflow = false;
+		boolean isDownflow = false;
+
+		String expo1 = operand1.substring(1, 1 + eLength);
+		String signi1 = operand1.substring(1 + eLength);
+		String expo2 = operand2.substring(1, 1 + eLength);
+		String signi2 = operand2.substring(1 + eLength);
+
+		int expo = 0;
+		int expo1TrueValue = Integer.parseInt(this.integerTrueValue("0" + expo1));
+		int expo2TrueValue = Integer.parseInt(this.integerTrueValue("0" + expo2));
+		// 相加减偏值
+		expo = expo1TrueValue + expo2TrueValue - (int) Math.pow(2.0, Math.pow(2.0, eLength - 1) - 1);
+
+		if (expo >= (Math.pow(2.0, eLength) - 1)) {
+			isOverflow = true;
+		}
+		if (expo <= 0) {
+			isDownflow = true;
+		}
+		// 如果上溢，返回无穷
+		if (isOverflow) {
+			returnResult = resultIsMinus ? "1" : "0";
+			for (int i = 0; i < eLength; i++) {
+				returnResult = returnResult + "1";
+			}
+			for (int i = 0; i < sLength; i++) {
+				returnResult = returnResult + "0";
+			}
+
+			return "1" + returnResult;
+		}
+		
+		// 下溢
+		String multiResult = "";
+		String fraction = "";
+		if (isDownflow) {
+			multiResult = this.integerMultiplication("0" + signi1, "0" + signi2, ((int) (2 * sLength + 2) / 4) * 4);
+			fraction = this.logRightShift(multiResult.substring(multiResult.length() - sLength, multiResult.length()),
+					1);
+
+			returnResult = (isOverflow ? "1" : "0") + (resultIsMinus ? "1" : "0");
+
+			for (int i = 0; i < eLength; i++) {
+				returnResult = returnResult + "0";
+			}
+
+			returnResult = returnResult + fraction;
+
+			return returnResult;
+		}
+
+		multiResult = this.integerMultiplication("1" + signi1, "1" + signi2, ((int) (2 * sLength + 2) / 4) * 4);
+		fraction = multiResult.substring(multiResult.indexOf("1"));
+		// String behindPoint=fraction.substring(fraction.length()-2*sLength);
+		fraction = this.leftShift(fraction, fraction.length() - 2 * sLength - 1);
+
+		expo = expo + fraction.length() - 2 * sLength - 1;
+
+		String e = this.trueFormRepresentation(String.valueOf(expo));
+		if (e.length() < eLength) {
+			e = "0" + e;
+		}
+
+		returnResult = resultIsMinus ? "1" : "0" + e + fraction.substring(0, sLength);
+		return isOverflow ? "1" : "0" + returnResult;
 	}
 
 	/**
@@ -1095,7 +1191,72 @@ public class ALU {
 	 *         其余位从左到右依次为符号、指数（移码表示）、尾数（首位隐藏）。舍入策略为向0舍入
 	 */
 	public String floatDivision(String operand1, String operand2, int eLength, int sLength) {
-		// TODO YOUR CODE HERE.
+		// 如果X为0，则结果为0；如果Y为0，则结果为无穷，符号取决于X
+		// 如果X和Y都不为0，则指数相减，并加偏值
+		// 如果指数上溢，则返回无穷
+		// 如果指数下溢，则返回反规格化数
+		// 否则，尾数相除，规格化后返回
+		String returnResult = "";
+		// X为0，返回0
+		if (this.floatTrueValue(operand1, eLength, sLength).equals("0")) {
+			for (int i = 0; i < 2 + eLength + sLength; i++) {
+				returnResult += "0";
+			}
+
+			return returnResult;
+		}
+		// Y为0，返回无穷
+		if (this.floatTrueValue(operand2, eLength, sLength).equals("0")) {
+			returnResult = "1" + operand1.substring(0, 1);
+			for (int i = 0; i < eLength; i++) {
+				returnResult = returnResult + "1";
+			}
+			for (int i = 0; i < sLength; i++) {
+				returnResult = returnResult + "0";
+			}
+
+			return returnResult;
+		}
+
+		// 判断结果符号
+		boolean resultIsMinus = false;
+		if (operand1.charAt(0) != operand2.charAt(0)) {
+			resultIsMinus = true;
+		}
+
+		boolean isOverflow = false;
+		boolean isDownflow = false;
+
+		String expo1 = operand1.substring(1, 1 + eLength);
+		String signi1 = operand1.substring(1 + eLength);
+		String expo2 = operand2.substring(1, 1 + eLength);
+		String signi2 = operand2.substring(1 + eLength);
+
+		int expo = 0;
+		int expo1TrueValue = Integer.parseInt(this.integerTrueValue("0" + expo1));
+		int expo2TrueValue = Integer.parseInt(this.integerTrueValue("0" + expo2));
+		// 相减加偏值
+		expo = expo1TrueValue - expo2TrueValue + (int) Math.pow(2.0, Math.pow(2.0, eLength - 1) - 1);
+
+		if (expo >= (Math.pow(2.0, eLength) - 1)) {
+			isOverflow = true;
+		}
+		if (expo <= 0) {
+			isDownflow = true;
+		}
+		// 如果上溢，返回无穷
+		if (isOverflow) {
+			returnResult = resultIsMinus ? "1" : "0";
+			for (int i = 0; i < eLength; i++) {
+				returnResult = returnResult + "1";
+			}
+			for (int i = 0; i < sLength; i++) {
+				returnResult = returnResult + "0";
+			}
+
+			return "1" + returnResult;
+		}
+
 		return null;
 	}
 
