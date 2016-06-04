@@ -161,7 +161,6 @@ public class ALU {
 	 * @return number的IEEE 754表示，长度为length。从左向右，依次为符号、指数（移码表示）、尾数（首位隐藏）
 	 */
 	public String ieee754(String number, int length) {
-		// TODO YOUR CODE HERE.
 		int eLength32 = 8;
 		int sLength32 = 23;
 		int eLength64 = 11;
@@ -184,7 +183,6 @@ public class ALU {
 	 * @return operand的真值。若为负数；则第一位为“-”；若为正数或 0，则无符号位
 	 */
 	public String integerTrueValue(String operand) {
-		// TODO YOUR CODE HERE.
 		char[] bits = operand.toCharArray();
 		boolean isMinus = false;
 
@@ -500,7 +498,6 @@ public class ALU {
 	 * @return 长度为5的字符串表示的计算结果，其中第1位是最高位进位，后4位是相加结果，其中进位不可以由循环获得
 	 */
 	public String claAdder(String operand1, String operand2, char c) {
-		// TODO YOUR CODE HERE.
 		char[] bits1 = operand1.toCharArray();
 		char[] bits2 = operand2.toCharArray();
 		char[] resultBits = new char[5];
@@ -728,7 +725,6 @@ public class ALU {
 	 *         最后length位为余数
 	 */
 	public String integerDivision(String operand1, String operand2, int length) {
-		// TODO YOUR CODE HERE.
 		int n = 0;
 		boolean overflow = false;
 		boolean differentSigns = false;
@@ -1084,7 +1080,6 @@ public class ALU {
 	 */
 	// TODO 未测试
 	public String floatMultiplication(String operand1, String operand2, int eLength, int sLength) {
-		// TODO YOUR CODE HERE.
 		// 如果X为0或Y为0，则结果为0
 		// 直接返回
 		String returnResult = "";
@@ -1158,7 +1153,7 @@ public class ALU {
 			return returnResult;
 		}
 
-		multiResult = this.integerMultiplication("1" + signi1, "1" + signi2, ((int) (2 * sLength + 2) / 4) * 4);
+		multiResult = this.integerMultiplication("01" + signi1, "01" + signi2, ((int) (2 * sLength + 2) / 4) * 4);
 		fraction = multiResult.substring(multiResult.indexOf("1"));
 		// String behindPoint=fraction.substring(fraction.length()-2*sLength);
 		fraction = this.leftShift(fraction, fraction.length() - 2 * sLength - 1);
@@ -1187,10 +1182,11 @@ public class ALU {
 	 *            指数的长度，取值大于等于 4
 	 * @param sLength
 	 *            尾数的长度，取值大于等于 4
-	 * @return 长度为2+eLength+sLength的字符串表示的相乘结果,其中第1位指示是否指数上溢（溢出为1，否则为0），
+	 * @return 长度为2+eLength+sLength的字符串表示的相除结果,其中第1位指示是否指数上溢（溢出为1，否则为0），
 	 *         其余位从左到右依次为符号、指数（移码表示）、尾数（首位隐藏）。舍入策略为向0舍入
 	 */
 	public String floatDivision(String operand1, String operand2, int eLength, int sLength) {
+		//TODO 反规格化数（包括操作数为反规格化数，结果为反规格化数）
 		// 如果X为0，则结果为0；如果Y为0，则结果为无穷，符号取决于X
 		// 如果X和Y都不为0，则指数相减，并加偏值
 		// 如果指数上溢，则返回无穷
@@ -1205,6 +1201,7 @@ public class ALU {
 
 			return returnResult;
 		}
+		
 		// Y为0，返回无穷
 		if (this.floatTrueValue(operand2, eLength, sLength).equals("0")) {
 			returnResult = "1" + operand1.substring(0, 1);
@@ -1256,8 +1253,37 @@ public class ALU {
 
 			return "1" + returnResult;
 		}
+		
+		//未考虑操作数就是反规格化数的情况（乘法也是）
+		//integerDivision传入的length一定是4的倍数？？
+		String divResult=this.integerDivision("01"+signi1, "01"+signi2, sLength);
+		String quotient=divResult.substring(1, 1+sLength);
+		String remainder=divResult.substring(1+sLength);
+		
+		//正常情况
+		String quotientComp="";
+		for(int i=0;i<sLength;i++){
+			quotientComp+="0";
+		}
+		//quotientComp:00...0(sLenth)
+		
+		
+		if(quotient.equals(quotientComp)){
+			while(!remainder.startsWith("1")){
+			remainder=this.leftShift("0"+remainder, 1);
+			expo--;
+			}
+		}
+		String fraction=remainder.substring(1);
 
-		return null;
+		returnResult="0"+(resultIsMinus?"1":"0");
+		String e = this.trueFormRepresentation(String.valueOf(expo));
+		if (e.length() < eLength) {
+			e = "0" + e;
+		}
+		returnResult=returnResult+e+fraction;
+		
+		return returnResult;
 	}
 
 	/**
